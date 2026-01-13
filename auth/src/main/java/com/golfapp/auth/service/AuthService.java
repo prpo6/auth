@@ -12,6 +12,7 @@ import com.golfapp.auth.repository.AccessTokenRepository;
 import com.golfapp.auth.repository.UserAccountRepository;
 import com.golfapp.auth.repository.EmployeeAccountRepository;
 import com.golfapp.auth.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,9 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RestTemplate restTemplate = new RestTemplate();
+    
+    @Value("${zaposleni.service.url:http://zaposleni:8080}")
+    private String zaposleniServiceUrl;
 
     public AuthService(UserAccountRepository userAccountRepository,
                        EmployeeAccountRepository employeeAccountRepository,
@@ -103,7 +107,7 @@ public class AuthService {
         // Get employee details from zaposleni service to check pozicija
         try {
             Map<String, Object> zaposleniData = restTemplate.getForObject(
-                "http://localhost:8091/api/zaposleni/" + employee.getZaposleniId(),
+                zaposleniServiceUrl + "/api/zaposleni/" + employee.getZaposleniId(),
                 Map.class
             );
             
@@ -141,7 +145,7 @@ public class AuthService {
         // Verify employee exists in zaposleni service
         try {
             restTemplate.getForObject(
-                "http://localhost:8091/api/zaposleni/" + request.getZaposleniId(),
+                zaposleniServiceUrl + "/api/zaposleni/" + request.getZaposleniId(),
                 Map.class
             );
         } catch (HttpClientErrorException e) {
@@ -187,7 +191,7 @@ public class AuthService {
                 // Get pozicija from zaposleni service
                 try {
                     Map<String, Object> zaposleniData = restTemplate.getForObject(
-                        "http://localhost:8091/api/zaposleni/" + employee.getZaposleniId(),
+                        zaposleniServiceUrl + "/api/zaposleni/" + employee.getZaposleniId(),
                         Map.class
                     );
                     String pozicija = (String) zaposleniData.get("pozicija");
